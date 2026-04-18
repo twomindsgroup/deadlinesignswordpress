@@ -1,6 +1,6 @@
 # BACKLOG
 
-**Last updated:** 2026-04-18 (Session 17)
+**Last updated:** 2026-04-18 (Session 18)
 
 Living document. Edit in place as items move. Sessions close out against this file.
 
@@ -19,11 +19,11 @@ Living document. Edit in place as items move. Sessions close out against this fi
 - **Validation plan:** Staging-first. Confirm session warnings stop AND guest pricing flow still works before prod deploy.
 - **References:** sessions/s16, sessions/s17
 
-### BL-002 · Inode watch on prod `wp-config.php`
-- **Status:** open (standing)
-- **Why:** Session 16 surfaced an unattributed wp-config replacement at 18:31 UTC on Apr 17. Actor not identified. If it recurs, that's the escalation signal.
-- **Action:** Periodic `stat` on `/var/www/vhosts/deadlinesigns.com/httpdocs/wp-config.php`. If Birth/Modify timestamp changes without an authenticated action, re-open investigation.
-- **References:** sessions/s16
+### BL-022 · Roadmap decision session
+- **Status:** open (new, s18)
+- **Why:** Three realistic endpoints exist: (1) finish security track + accept running WP 5.0.4, (2) unblock BL-004 and do incremental WP/WC/PHP upgrade, (3) stand up a fresh site at a parallel subdomain and migrate products/orders/customers via export-import + SQL, then flip DNS. Each has very different work shape and timeline. Every session is currently decided case-by-case because this hasn't been picked.
+- **Scope:** 20 min focused conversation. Pick an endpoint. Adjust BACKLOG priorities accordingly.
+- **References:** sessions/s18 "Open threads"
 
 ---
 
@@ -42,30 +42,32 @@ Living document. Edit in place as items move. Sessions close out against this fi
 ### BL-004 · Main store PHP 8.1 staging — SSL vhost blocker
 - **Status:** blocked (since Feb 25, 2026)
 - **Blocker:** Plesk only generated HTTP vhost on port 7080, no SSL vhost on port 7081. `plesk repair web` didn't fix. Self-signed cert handshake works but vhost still 404s.
-- **Unblocks:** BL-001, BL-005, and the whole WP 5.0.4 → current upgrade path.
+- **Unblocks:** BL-001, BL-021, and the whole WP 5.0.4 → current upgrade path if Track 2 chosen in BL-022.
+- **Alternative approach:** skip staging entirely if fresh-rebuild track is chosen (BL-022).
 - **Location:** `development.wefixyoursite.com`
 - **References:** sessions/s02
 
-### BL-005 · WordPress admin password + Wordfence install
-- **Status:** open
-- **Why:** Flagged in Session 9 (Mar 20) after malware discovery, never confirmed complete. Relates to the orphan `wordfence-waf.php` file at webroot.
-- **References:** sessions/s09
+### BL-017 · Ubuntu security updates (incl. kernel)
+- **Status:** open (new, s18)
+- **Why:** 13 pending security updates. Kernel 6.8.0-110 vs installed 6.8.0-79. libssl3t64, bind9, ruby among them.
+- **Needs:** reboot maintenance window (kernel upgrade requires reboot).
+- **References:** sessions/s18 I10
 
-### BL-006 · `wordfence-waf.php` audit before removal
-- **Status:** open
-- **Why:** 430-byte file at webroot root. May be wired via `auto_prepend_file` in `.user.ini` or php.ini. Deletion without audit would 500 every PHP request.
-- **Action:** Check `.user.ini`, php.ini, and Plesk PHP additional directives for `auto_prepend_file` pointing to this file. If found, remove directive first, then file.
-- **References:** sessions/s17
+### BL-021 · Wordfence re-install (clean slate)
+- **Status:** open (new, s18 — replaces old BL-005 Wordfence scope)
+- **Why:** s18 confirmed prior Wordfence install was abandoned half-done; wiring stripped in s18 D2, site now has no WAF. Before reinstalling, need to confirm which Wordfence version supports WP 5.0.4 (current versions may refuse or install in degraded mode).
+- **First step:** version compatibility research. Not an auto-execute task.
+- **References:** sessions/s09 (original flag), sessions/s18 D2
 
 ---
 
 ## P2 — When there's time
 
 ### BL-007 · FPM env[] directives audit across all PHP pools
-- **Status:** open
-- **Why:** info.php leaked phpinfo for 9 months; PHP 7.4 pool confirmed clean but 8.0/8.1/8.2/8.3 pools not yet audited. If any carry secrets in env[], they were in the public exposure window.
+- **Status:** partial (s18 verified PHP 7.4 clean; other pools not yet audited)
+- **Why:** info.php leaked phpinfo for 9 months; PHP 7.4 pool confirmed clean but 8.0/8.1/8.2/8.3 pools need verification. If any carry secrets in env[], they were in the public exposure window.
 - **Also:** grep webroot for `.htaccess` / `.user.ini` `SetEnv` directives that might put secrets into PHP env.
-- **References:** sessions/s17
+- **References:** sessions/s17, sessions/s18 I1
 
 ### BL-008 · Google Business Profile merge
 - **Status:** open
@@ -77,23 +79,26 @@ Living document. Edit in place as items move. Sessions close out against this fi
 - **Targets:** Yelp, Bing Places, Apple Maps, Facebook, industry directories.
 - **References:** sessions/s03
 
-### BL-010 · `export-2025-lineitems.php` token rotation
-- **Status:** open
-- **Why:** Kris's WC order CSV exporter uses weak token `ds2025export` in plaintext at webroot. Rotate to random string before next use.
-- **Better long-term:** move into a plugin, gate with `current_user_can('manage_woocommerce')`, expose as admin-ajax or REST.
-- **References:** sessions/s17
-
-### BL-011 · Uploads-directory PHP execution block
-- **Status:** open
-- **Why:** Two `toodles.php` phpinfo stubs from 2017 were found in `/wp-content/uploads/`. `.htaccess` rule denying `.php` execution inside uploads would have prevented them from running.
-- **Action:** add `.htaccess` to `/wp-content/uploads/` with `<FilesMatch "\.php$"> Require all denied </FilesMatch>`.
-- **References:** sessions/s17
-
 ### BL-012 · cs-dashboard project documentation
 - **Status:** open (lives in separate Claude project)
 - **Why:** React/TypeScript frontend + PHP backend, SMS/MMS messaging, contact management, call logs, order search merging custom `cs_orders` + legacy WC posts, commitments system. Kept surfacing in this project's sessions but is architecturally separate.
 - **Also:** In Session 17, CC tried to write to `docs/ARCHIVE-SESSIONS.md` and `docs/TRACKER.md` paths that don't exist in this project — possible CC context bleed from cs-dashboard project. Worth verifying.
 - **References:** sessions/s10, sessions/s14, sessions/s17
+
+### BL-018 · postgres on 0.0.0.0:5432 publicly exposed
+- **Status:** open (new, s18)
+- **Why:** Phase 1 I16 surfaced postgres listening on all interfaces. Not related to Deadline Signs (different vhost on same server), but a risk on the server as a whole. Needs investigation: what's using it, can it be bound to localhost.
+- **References:** sessions/s18 I16
+
+### BL-019 · SSH authorized_keys audit for root
+- **Status:** open (new, s18)
+- **Why:** 15 entries in /root/.ssh/authorized_keys, some with generic/ambiguous names ("Generated", "new", "all_key", "bitwarden_all_key"). Audit candidates for pruning.
+- **References:** sessions/s18 I11
+
+### BL-020 · MySQL %-host wildcards
+- **Status:** open (new, s18)
+- **Why:** 17 accounts including `deadlinesigns@%` have `%` host wildcards. MySQL isn't bound publicly so current risk is limited, but credential leak would allow external use.
+- **References:** sessions/s18 I13
 
 ---
 
@@ -117,23 +122,27 @@ Living document. Edit in place as items move. Sessions close out against this fi
 ### BL-016 · PHP 7.4 hardening
 - **Status:** open (part of eventual PHP 8.x upgrade)
 - **Why:** `open_basedir=none`, `disable_functions=opcache_get_status` (effectively empty). Combined with public exposure of this fingerprint via the info.php leak, standing risk.
-- **Blocker:** BL-004 (staging unblock) → BL-001 (plugin patch) → full upgrade.
+- **Blocker:** BL-004 (staging unblock) → BL-001 (plugin patch) → full upgrade — or fresh-rebuild track (BL-022).
 - **References:** sessions/s17
 
 ---
 
-## Recently closed (last 5 sessions)
+## Recently closed
 
 | ID | Title | Closed |
 |---|---|---|
+| BL-002 | Inode watch on prod wp-config — cron installed, alerts wired | s18, 2026-04-18 |
+| BL-005 (partial) | WP admin password rotation for kris | s18, 2026-04-18 |
+| BL-006 | wordfence-waf.php audit — confirmed orphan, cleanly removed | s18, 2026-04-18 |
+| BL-010 | export-2025-lineitems.php token rotation | s18, 2026-04-18 |
+| BL-011 | Uploads PHP execution block | s18, 2026-04-18 |
+| — | XMLRPC block (D7, new in s18) | s18, 2026-04-18 |
 | — | Orphan PHP cleanup (7 files) | s17, 2026-04-18 |
 | — | Super-admin hygiene (11 → 4) | s17, 2026-04-18 |
 | — | Staging-yl log diagnosis | s17, 2026-04-18 |
 | — | Prod debug.log emergency brake | s16, 2026-04-17 |
 | — | Convenience fee plugin verification | s16, 2026-04-17 |
 | — | SMS notifications (Flowroute fix) | s14, 2026-03-25 |
-| — | YL upgrade (PHP 8.2, WC 10.6, WP Super Cache) | s07–s08, 2026-03-19/20 |
-| — | Custom Stripe gateway (`deadline-stripe-gateway`) | s06, 2026-03-18 |
 
 ---
 

@@ -83,6 +83,15 @@ When a site upgrades PHP to 8.2 and plugins aren't updated, expect:
 - WooCommerce "Translation loaded too early" for plugins calling `load_plugin_textdomain` after init
 **Source:** s17
 
+### G-30 · Removing files referenced by `.user.ini` `auto_prepend_file` requires FPM reload FIRST
+`.user.ini` directives are cached by PHP-FPM workers via `user_ini.cache_ttl` (default 300s). If you strip a directive AND move the file it referenced in the same breath, workers keep trying to `auto_prepend` the now-missing file for up to 5 minutes → intermittent HTTP 500s on a fraction of requests. Correct order:
+1. Strip the directive from `.user.ini`
+2. `systemctl reload plesk-php<N>-fpm` (flushes worker cache)
+3. THEN move or delete the file
+
+Fixed this in s18 by reloading FPM after the fact. Customer impact was limited because Cloudflare was serving most traffic from its 200 cache, but it's real and the order matters.
+**Source:** s18
+
 ---
 
 ## `#multisite`
@@ -124,7 +133,7 @@ Batch commands in single heredoc SSH calls. Keep per-step connection count ≤ 2
 **Source:** s08
 
 ### G-21 · Bash special characters break terminal commands
-Especially `!` in passwords used inside commands. Avoid them in anything you'll paste into a shell.
+Especially `!` in passwords used inside commands. Avoid them in anything you'll paste into a shell. Safe: letters, digits, `@ # - _ + . , = /`. Dangerous: `! $ \` " ' * ? [ ] & | ; < > ( ) space`.
 **Source:** s09
 
 ---
@@ -144,20 +153,24 @@ Any hook guarded by this check will silently skip execution during cron, webhook
 **Source:** s14
 
 ### G-24 · `wp-config.php` inode change as canary
-Stat `wp-config.php` periodically. If Birth/Modify timestamp changes without an authenticated action, it's a signal for investigation. Inode preservation under in-place edits is normal; inode change = full-file replacement = suspect.
-**Source:** s16
+Stat `wp-config.php` periodically. If Birth/Modify timestamp changes without an authenticated action, it's a signal for investigation. Inode preservation under in-place edits is normal; inode change = full-file replacement = suspect. As of s18 this is automated: `/usr/local/bin/wp-config-inode-watch.sh` runs hourly, emails kris@2minds.biz on change.
+**Source:** s16, automated in s18
 
 ---
 
 ## `#security`
 
 ### G-25 · Uploads directory phpinfo stubs
-Identical-byte, identical-hash `toodles.php` copies in `/wp-content/uploads/2017/03/` and `/wp-content/uploads/sites/4/2017/03/` are fingerprints of a 2017-era compromise recon probe. Cheap prevention: `.htaccess` in uploads denying `.php` execution.
-**Source:** s17
+Identical-byte, identical-hash `toodles.php` copies in `/wp-content/uploads/2017/03/` and `/wp-content/uploads/sites/4/2017/03/` are fingerprints of a 2017-era compromise recon probe. As of s18 this is mitigated: `.htaccess` in both uploads roots denies PHP execution.
+**Source:** s17, mitigated in s18
 
 ### G-26 · phpinfo() does NOT leak WordPress `define()` constants
 `define('DB_PASSWORD', ...)` in wp-config is a PHP constant, not an env var. Does not appear in phpinfo output. phpinfo still leaks plenty (paths, PHP version, extensions, pool config, open_basedir status, disable_functions list) but credentials via `define()` are safe from that specific vector. FPM pool `env[]` directives are NOT safe — audit those separately.
 **Source:** s17
+
+### G-31 · `mailutils` package required for `mail` CLI on Plesk boxes
+Postfix running ≠ `mail` command available. Plesk provides postfix and sendmail but not the `mail` / `mailx` wrapper by default. If cron alerts or any shell script needs to pipe through `mail`, install with `apt install mailutils` first. Alternative: pipe through `sendmail -t` directly with explicit headers.
+**Source:** s18
 
 ---
 
@@ -175,12 +188,16 @@ Prod and YL share origin but not codebase. Don't assume a symptom that looks sim
 Kris explicitly deprioritizes caution on live-store Stripe keys shared in chat. Don't slow momentum over it.
 **Source:** s06
 
+### G-32 · One-big-heredoc SSH can hit local shell parse errors
+When a single heredoc contains many nested quote styles (PHP `-r` inline scripts, bash `<<'SCRIPT'` nested heredocs, sed quotes, awk scripts), the local shell can mis-match quotes before it even ships to SSH. Symptom: "unexpected EOF" or parser errors on the client side. Workaround: split into 4–6 smaller SSH calls with logical grouping. For read-only probes, these can run in parallel safely; for writes, keep them serial. CC handled this autonomously in s18.
+**Source:** s18
+
 ---
 
 ## How to add to this file
 
 When a session surfaces a new landmine:
 1. Pick the most specific subsystem tag, or add a new one.
-2. Assign the next `G-NN` number in the tag's section (or overall, if numbering globally; current convention is global).
+2. Assign the next `G-NN` number (global numbering).
 3. One-paragraph statement of the landmine + its fix.
 4. `**Source:** s<session-number>` at the bottom so the full context is traceable.

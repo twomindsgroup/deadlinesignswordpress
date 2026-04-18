@@ -1,6 +1,6 @@
 # ENVIRONMENT
 
-**Last full refresh:** 2026-04-18 (Session 17)
+**Last full refresh:** 2026-04-18 (Session 18)
 Each section carries its own `Verified:` date so drift is visible.
 
 ---
@@ -23,16 +23,20 @@ Address: 5-L C Carpenter Ct NW, Concord NC 28027 (shared across Broome Sign Comp
 
 ## Server
 
-**Verified:** 2026-04-18 (Session 17)
+**Verified:** 2026-04-18 (Session 18)
 
 | Item | Value |
 |---|---|
 | Provider | OVH VPS |
 | IP | `148.113.187.163` |
 | Control panel | Plesk, Linux |
+| OS | Ubuntu (13 security updates pending — BL-017) |
+| Kernel | 6.8.0-79 (6.8.0-110 available, reboot needed) |
 | Partition | 20 TB on `/var/www` |
 | SSH alias | `ovh` (in `~/.ssh/config`) |
 | Whitelisted IPs | work `67.62.101.122`, home `136.57.2.111` |
+| MTA | postfix (running) + mailutils (installed s18 for `mail` CLI) |
+| fail2ban | active, recidive jail with 64 active bans as of s18 |
 
 Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Claude Code for agentic execution.
 
@@ -54,7 +58,7 @@ Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Clau
 
 ## WordPress multisite (main network)
 
-**Verified:** 2026-04-18 (Session 17)
+**Verified:** 2026-04-18 (Session 18)
 
 | Item | Value |
 |---|---|
@@ -64,7 +68,11 @@ Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Clau
 | WordPress version | 5.0.4 (March 2019) |
 | WooCommerce version | 3.6.2 (April 2019) |
 | PHP version | 7.4.33 |
-| Status | Seven years out of date, upgrade project STALLED (see BACKLOG) |
+| WAF | **NONE active** (Wordfence half-install cleaned up in s18; reinstall tracked as BL-021) |
+| XMLRPC | **blocked** via webroot .htaccess (s18 D7) |
+| Uploads PHP execution | **blocked** via .htaccess in uploads roots (s18 D4) |
+| wp-config inode watch | **active**, hourly, alerts to kris@2minds.biz (s18 D5) |
+| Status | Seven years out of date, upgrade project STALLED (see BACKLOG BL-004) |
 
 ⚠ `yl.deadlinesigns.com` is NOT part of this multisite — it runs its own standalone WP install.
 
@@ -90,7 +98,7 @@ Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Clau
 
 ## Paths (critical)
 
-**Verified:** 2026-04-18 (Session 17)
+**Verified:** 2026-04-18 (Session 18)
 
 | What | Path |
 |---|---|
@@ -101,6 +109,9 @@ Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Clau
 | PHP 7.4 binary | `/opt/plesk/php/7.4/bin/php` |
 | PHP 8.2 binary | `/opt/plesk/php/8.2/bin/php` |
 | WP-CLI binary | `/usr/local/bin/wp` |
+| Inode watch script (s18) | `/usr/local/bin/wp-config-inode-watch.sh` |
+| Inode watch cron (s18) | `/etc/cron.d/wp-config-watch` |
+| Inode watch state (s18) | `/var/lib/wp-config-watch/` |
 
 **WP-CLI always-use-full-path invocation:**
 ```bash
@@ -109,13 +120,13 @@ Workflow: KiTTY/PuTTY for interactive, PowerShell for SCP/SSH from Windows, Clau
 /opt/plesk/php/7.4/bin/php /usr/local/bin/wp [cmd] --allow-root --path=[docroot]
 ```
 
-Bare `wp` picks up the wrong system PHP. See GOTCHAS #wp-cli.
+Bare `wp` picks up the wrong system PHP. See GOTCHAS G-01.
 
 ---
 
 ## Key custom plugins (main store)
 
-**Verified:** 2026-04-18 (Session 17)
+**Verified:** 2026-04-18 (Session 18)
 
 | Plugin | Role | Status |
 |---|---|---|
@@ -160,16 +171,29 @@ Dead code NOT to reintroduce: RingCentral (commented out), Twilio SMS plugin (su
 
 ## Super admins (network)
 
-**Verified:** 2026-04-18 (Session 17)
+**Verified:** 2026-04-18 (Session 17/18)
 
 Exactly 4 accounts. Any drift is a signal.
 
-- `kris`
+- `kris` (user ID 5 — **note: not ID 1 as previously assumed**)
 - `chantel`
 - `carlie`
 - `megan`
 
 Any other entry in `site_admins` sitemeta is suspicious and should trigger an audit.
+
+---
+
+## Current credentials (store encrypted elsewhere — NOT here)
+
+**Verified:** 2026-04-18 (Session 18)
+
+Credentials that rotated in s18 — store in password manager:
+
+- `kris` WP admin password (rotated s18 D1) — only Kris knows; not in any file or memory
+- Export CSV token — current: `7310e7511d0abebfc65f839f4dd77f38` (used in URL: `https://deadlinesigns.com/export-2025-lineitems.php?token=7310e7511d0abebfc65f839f4dd77f38`)
+
+⚠ Do not commit actual credentials to this file or any git repo. This section tracks *what rotated when*, not the values themselves.
 
 ---
 
