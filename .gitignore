@@ -1,0 +1,10 @@
+﻿Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+*.swp
+.claude/
+*.session
+*.env
+*.key
+*secret*
