@@ -8,6 +8,15 @@ Cleaned up periodically. Check dates — some of these may be gone.
 
 ## Active backups
 
+### `/root/wcspp-pre-bl001-20260419/`
+**Created:** 2026-04-19 (s19)
+**Retention:** 7 days (delete after ~Apr 26, 2026) if prod stable
+**Contents:** Full pre-patch copy of `wc-special-product-pricing` plugin (6.8 MB, `cp -a`). Backed up before BL-001 Shape A patch.
+**Rollback command:**
+```bash
+ssh ovh 'rm -rf /var/www/vhosts/deadlinesigns.com/httpdocs/wp-content/plugins/wc-special-product-pricing && cp -a /root/wcspp-pre-bl001-20260419 /var/www/vhosts/deadlinesigns.com/httpdocs/wp-content/plugins/wc-special-product-pricing && systemctl reload plesk-php74-fpm'
+```
+
 ### `/root/orphan-cleanup-20260417/`
 **Created:** 2026-04-17/18 (s17)
 **Retention:** 30 days (delete after ~May 18, 2026)

@@ -92,6 +92,10 @@ When a site upgrades PHP to 8.2 and plugins aren't updated, expect:
 Fixed this in s18 by reloading FPM after the fact. Customer impact was limited because Cloudflare was serving most traffic from its 200 cache, but it's real and the order matters.
 **Source:** s18
 
+### G-33 · `wc -l` vs PHP `file()` disagree by 1 on files without trailing newline
+`wc -l` counts `\n` characters; PHP's `file()` returns one array element per line even when the last line lacks a terminator. A legacy file ending `}` or `?>` with no trailing newline gives `wc -l = 145` but `count(file($path)) = 146`. Anchor-based patch scripts that verify line counts against `wc -l` will abort incorrectly on these files. Use the `file()` count as the source of truth inside PHP patch scripts.
+**Source:** s19
+
 ---
 
 ## `#multisite`
@@ -123,6 +127,10 @@ Shop as Customer plugin has this bug and is patched locally.
 ### G-19 · WP Super Cache activation via WP-CLI is incomplete
 WP-CLI activation doesn't run the admin UI setup routine. You must manually inject `.htaccess` mod_rewrite rules and generate `wp-cache-config.php`. Also check for leftover `advanced-cache.php` from prior caching plugins (WP Rocket, etc.).
 **Source:** s08
+
+### G-35 · `wp_ajax_nopriv_` registration ≠ working feature
+A `wp_ajax_nopriv_<action>` hook is reachable by anonymous users, but the registration alone is not evidence the feature works. In `wc-special-product-pricing`, `list_media` and `modal_media` register `nopriv` endpoints that query a `_token_auto_delete` postmeta key no code anywhere writes — feature has been broken since circa 2020. Before refactoring an AJAX endpoint, grep for readers/writers of the data it depends on.
+**Source:** s19
 
 ---
 
@@ -191,6 +199,14 @@ Kris explicitly deprioritizes caution on live-store Stripe keys shared in chat. 
 ### G-32 · One-big-heredoc SSH can hit local shell parse errors
 When a single heredoc contains many nested quote styles (PHP `-r` inline scripts, bash `<<'SCRIPT'` nested heredocs, sed quotes, awk scripts), the local shell can mis-match quotes before it even ships to SSH. Symptom: "unexpected EOF" or parser errors on the client side. Workaround: split into 4–6 smaller SSH calls with logical grouping. For read-only probes, these can run in parallel safely; for writes, keep them serial. CC handled this autonomously in s18.
 **Source:** s18
+
+### G-34 · `grep -c` exits 1 when match count is zero
+Under `set -euo pipefail`, a `grep -c pattern file` that finds zero matches returns 1 and kills the script — even when "zero matches" is the desired post-condition after a cleanup patch. Wrap post-condition greps with `|| true`, or bracket the verification block with `set +e` / `set -e`.
+**Source:** s19
+
+### G-36 · Backlog entries can describe the wrong shape of fix
+A backlog entry written from initial triage ("migrate `$_SESSION` to `WC()->session`") can prescribe a mechanical refactor for code that is actually dead. Before executing the prescribed shape, verify the code being refactored is live: grep for readers of every write, callers of every function, writers of every meta key being queried. If a feature doesn't have a complete round-trip, deletion is cheaper than migration. BL-001 was reshaped from migration to deletion on this basis.
+**Source:** s19
 
 ---
 

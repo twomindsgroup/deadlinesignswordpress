@@ -22,6 +22,7 @@ One file per session. Append-only. Filename convention: `YYYY-MM-DD-sNN-short-ti
 | 16 | 2026-04-17 | Convenience fee verification + 43 GB debug.log investigation | [2026-04-17-s16-debug-log-43gb.md](2026-04-17-s16-debug-log-43gb.md) |
 | 17 | 2026-04-17/18 | Three-task cleanup: orphan PHP + super-admin hygiene + staging-yl diagnosis | [2026-04-18-s17-three-task-cleanup.md](2026-04-18-s17-three-task-cleanup.md) |
 | 18 | 2026-04-18 | Morning security close-out + hardening batch (BL-002/005/006/010/011 + XMLRPC) | [2026-04-18-s18-morning-security-batch.md](2026-04-18-s18-morning-security-batch.md) |
+| 19 | 2026-04-19 | BL-001 patch + four-item backlog sweep | [2026-04-19-s19-bl001-patch.md](2026-04-19-s19-bl001-patch.md) |
 
 ---
 

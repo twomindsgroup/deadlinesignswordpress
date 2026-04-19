@@ -1,6 +1,6 @@
 # BACKLOG
 
-**Last updated:** 2026-04-18 (Session 18)
+**Last updated:** 2026-04-19 (Session 19)
 
 Living document. Edit in place as items move. Sessions close out against this file.
 
@@ -10,13 +10,6 @@ Living document. Edit in place as items move. Sessions close out against this fi
 ---
 
 ## P0 — Active or next-session
-
-### BL-001 · Plugin patch: `$_SESSION` → `WC()->session` in `wc-special-product-pricing`
-- **Status:** open
-- **Why it matters:** Root cause of prod's 43 GB debug.log. If anything flips `WP_DEBUG=true`, the bleed resumes within minutes.
-- **Scope:** 7 call sites across `inc/functions.php` and `inc/ajax.php`. Plugin already uses `WC()->session` in `inc/add-fee.php:18-25`, so migration aligns existing pattern. Eliminates `session_start()` entirely.
-- **Validation plan:** Staging-first. Confirm session warnings stop AND guest pricing flow still works before prod deploy.
-- **References:** sessions/s16, sessions/s17
 
 ### BL-022 · Roadmap decision session
 - **Status:** open (new, s18)
@@ -117,8 +110,10 @@ Living document. Edit in place as items move. Sessions close out against this fi
 
 | ID | Title | Closed |
 |---|---|---|
+| BL-001 | Plugin patch: $_SESSION removal in wc-special-product-pricing | s19, 2026-04-19 |
+| BL-002 | Inode canary verified live | s19, 2026-04-19 |
+| BL-004 | Main store staging SSL (self-resolved) | s19, 2026-04-19 |
 | BL-008 | Google Business Profile merge | s19, 2026-04-19 |
-| BL-004 | Main store PHP 8.1 staging SSL vhost — resolved itself, Plesk regenerated Apr 2 | s19, 2026-04-19 |
 | BL-002 | Inode watch on prod wp-config — cron installed, alerts wired | s18, 2026-04-18 |
 | BL-005 (partial) | WP admin password rotation for kris | s18, 2026-04-18 |
 | BL-006 | wordfence-waf.php audit — confirmed orphan, cleanly removed | s18, 2026-04-18 |
