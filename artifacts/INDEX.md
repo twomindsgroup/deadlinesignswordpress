@@ -145,6 +145,18 @@ From s16 investigation:
 
 ---
 
+## Audit documents
+
+### `artifacts/FULL-SITE-AUDIT.md`
+**Created:** 2026-04-18 (s19)
+**Purpose:** Complete site audit and rebuild specification for deadlinesigns.com → Next.js + PostgreSQL migration. Covers all 9 product types, pricing engine, checkout flow, payment gateways, order management, reseller portal, integrations, data migration plan, and recommended architecture.
+
+### `artifacts/THEME-WOOCOMMERCE-AUDIT.md`
+**Created:** 2026-04-18 (s19)
+**Purpose:** Detailed theme and WooCommerce template override audit. 65 template overrides, checkout flow implementation, email templates, shortcodes.
+
+---
+
 ## How to add to this file
 
 When a session creates a server-side artifact (backup dir, zipped plugin, dumped SQL, handoff doc):

@@ -12,8 +12,7 @@ Living document. Edit in place as items move. Sessions close out against this fi
 ## P0 — Active or next-session
 
 ### BL-001 · Plugin patch: `$_SESSION` → `WC()->session` in `wc-special-product-pricing`
-- **Status:** blocked
-- **Blocker:** needs main-store staging unblocked first (BL-004)
+- **Status:** open
 - **Why it matters:** Root cause of prod's 43 GB debug.log. If anything flips `WP_DEBUG=true`, the bleed resumes within minutes.
 - **Scope:** 7 call sites across `inc/functions.php` and `inc/ajax.php`. Plugin already uses `WC()->session` in `inc/add-fee.php:18-25`, so migration aligns existing pattern. Eliminates `session_start()` entirely.
 - **Validation plan:** Staging-first. Confirm session warnings stop AND guest pricing flow still works before prod deploy.
@@ -39,14 +38,6 @@ Living document. Edit in place as items move. Sessions close out against this fi
 - **Needs:** proper maintenance-window session with plugin-by-plugin testing.
 - **References:** sessions/s17
 
-### BL-004 · Main store PHP 8.1 staging — SSL vhost blocker
-- **Status:** blocked (since Feb 25, 2026)
-- **Blocker:** Plesk only generated HTTP vhost on port 7080, no SSL vhost on port 7081. `plesk repair web` didn't fix. Self-signed cert handshake works but vhost still 404s.
-- **Unblocks:** BL-001, BL-021, and the whole WP 5.0.4 → current upgrade path if Track 2 chosen in BL-022.
-- **Alternative approach:** skip staging entirely if fresh-rebuild track is chosen (BL-022).
-- **Location:** `development.wefixyoursite.com`
-- **References:** sessions/s02
-
 ### BL-017 · Ubuntu security updates (incl. kernel)
 - **Status:** open (new, s18)
 - **Why:** 13 pending security updates. Kernel 6.8.0-110 vs installed 6.8.0-79. libssl3t64, bind9, ruby among them.
@@ -69,13 +60,8 @@ Living document. Edit in place as items move. Sessions close out against this fi
 - **Also:** grep webroot for `.htaccess` / `.user.ini` `SetEnv` directives that might put secrets into PHP env.
 - **References:** sessions/s17, sessions/s18 I1
 
-### BL-008 · Google Business Profile merge
-- **Status:** open
-- **Why:** Consolidating Broome Sign Company + Two Minds Group → Deadline Signs. Guide delivered Feb 26, 2026. Awaiting Kris to gather Business Profile IDs and submit to Google Support.
-- **References:** sessions/s03
-
 ### BL-009 · Post-GBP-merge directory cleanup
-- **Status:** blocked (on BL-008)
+- **Status:** open
 - **Targets:** Yelp, Bing Places, Apple Maps, Facebook, industry directories.
 - **References:** sessions/s03
 
@@ -122,7 +108,7 @@ Living document. Edit in place as items move. Sessions close out against this fi
 ### BL-016 · PHP 7.4 hardening
 - **Status:** open (part of eventual PHP 8.x upgrade)
 - **Why:** `open_basedir=none`, `disable_functions=opcache_get_status` (effectively empty). Combined with public exposure of this fingerprint via the info.php leak, standing risk.
-- **Blocker:** BL-004 (staging unblock) → BL-001 (plugin patch) → full upgrade — or fresh-rebuild track (BL-022).
+- **Blocker:** BL-001 (plugin patch) → full upgrade — or fresh-rebuild track (BL-022).
 - **References:** sessions/s17
 
 ---
@@ -131,6 +117,8 @@ Living document. Edit in place as items move. Sessions close out against this fi
 
 | ID | Title | Closed |
 |---|---|---|
+| BL-008 | Google Business Profile merge | s19, 2026-04-19 |
+| BL-004 | Main store PHP 8.1 staging SSL vhost — resolved itself, Plesk regenerated Apr 2 | s19, 2026-04-19 |
 | BL-002 | Inode watch on prod wp-config — cron installed, alerts wired | s18, 2026-04-18 |
 | BL-005 (partial) | WP admin password rotation for kris | s18, 2026-04-18 |
 | BL-006 | wordfence-waf.php audit — confirmed orphan, cleanly removed | s18, 2026-04-18 |
