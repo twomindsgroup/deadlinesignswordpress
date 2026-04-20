@@ -8,6 +8,12 @@ Cleaned up periodically. Check dates — some of these may be gone.
 
 ## Active backups
 
+### `/root/staging-s20-backup-20260420/`
+**Created:** 2026-04-20 (s20)
+**Retention:** 30 days (delete after ~May 20, 2026)
+**Contents:** 12 MB. Tier 1+2 Requests/SimplePie/random_compat/sodium files, 2 stale theme dirs, full wcspp plugin pre-patch, wcspp-prepatch/ (just the 2 patched files with md5s), Wordfence preflight artifacts (.user.ini, wordfence-waf.php), debug.log metadata snapshot.
+**Rollback:** Per-item. Most items are individual file/dir copies and can be restored with cp -a [source] [dest].
+
 ### `/root/wcspp-pre-bl001-20260419/`
 **Created:** 2026-04-19 (s19)
 **Retention:** 7 days (delete after ~Apr 26, 2026) if prod stable

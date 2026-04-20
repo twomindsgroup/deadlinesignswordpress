@@ -1,6 +1,6 @@
 # BACKLOG
 
-**Last updated:** 2026-04-19 (Session 19)
+**Last updated:** 2026-04-20 (Session 20)
 
 Living document. Edit in place as items move. Sessions close out against this file.
 
@@ -78,6 +78,28 @@ Living document. Edit in place as items move. Sessions close out against this fi
 - **Status:** open (new, s18)
 - **Why:** 17 accounts including `deadlinesigns@%` have `%` host wildcards. MySQL isn't bound publicly so current risk is limited, but credential leak would allow external use.
 - **References:** sessions/s18 I13
+
+### BL-023 · wp-cli.phar at prod docroot — provenance audit
+- **Status:** open
+- **Why:** Surfaced in staging checksum recon; equivalent may exist at prod. Unknown provenance. System uses /usr/local/bin/wp, so this is orphan. Investigate origin before deleting.
+- **References:** sessions/s20
+
+### BL-024 · Stray deploy artifact in staging themes dir
+- **Status:** open
+- **Why:** /wp-content/themes/print-left-navigation-php8-patched.zip (3 MB) sitting in themes dir, web-accessible. Remnant from prior PHP 8 compat work.
+- **Action:** Delete. Verify no prod equivalent.
+- **References:** sessions/s20
+
+### BL-025 · Staging debug.log growth suppression
+- **Status:** open
+- **Why:** Log grows ~25 MB/hr on staging with WP_DEBUG=true. Top 5 sources (~75% of volume): Quform, WP PDF Invoices, Ultimate VC Addons, Yoast Premium redirects, perfmatters.
+- **Options:** fix offenders in s21, OR set error_reporting(E_ERROR | E_PARSE) in staging wp-config.
+- **References:** sessions/s20
+
+### BL-026 · Finish Wordfence WAF wizard on staging
+- **Status:** open
+- **Why:** Plugin installed + network-activated in s20 but WAF auto_prepend not wired. Browser-side task: admin → Wordfence → Reset License → Free → Optimize Firewall.
+- **References:** sessions/s20
 
 ---
 

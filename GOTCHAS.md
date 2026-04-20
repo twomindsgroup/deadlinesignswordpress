@@ -35,6 +35,10 @@ That command returns all users, not super admins. Use SQL on `sitemeta WHERE met
 It only strips the network-admin bit. Account still exists with whatever per-site roles it had. Full hygiene = content audit → sitemeta remove + per-blog role change (demote) OR delete with `--reassign=1 --network`.
 **Source:** s17
 
+### G-37 · `wp core verify-checksums | tail -N` masks orphan count
+The command emits one warning per orphan file followed by an `Error: …` summary line. Tailing the last few lines catches the summary but hides the warnings, making it look like a small problem when it isn't. The s19 recon used `tail -5` and reported 4 orphans; full enumeration in s20 surfaced ~150 (a 37× under-count). For orphan enumeration, capture full output and `grep -c "^Warning"` for the count, or pipe to `wc -l`.
+**Source:** s20
+
 ---
 
 ## `#plesk`
@@ -207,6 +211,14 @@ Under `set -euo pipefail`, a `grep -c pattern file` that finds zero matches retu
 ### G-36 · Backlog entries can describe the wrong shape of fix
 A backlog entry written from initial triage ("migrate `$_SESSION` to `WC()->session`") can prescribe a mechanical refactor for code that is actually dead. Before executing the prescribed shape, verify the code being refactored is live: grep for readers of every write, callers of every function, writers of every meta key being queried. If a feature doesn't have a complete round-trip, deletion is cheaper than migration. BL-001 was reshaped from migration to deletion on this basis.
 **Source:** s19
+
+### G-38 · Recursive `find -delete` with `src/` preservation needs explicit predicate
+`find . -type f ! -path "./src/*" -delete` only excludes files directly in the top-level `src/`. It does NOT exclude files in nested directories that happen to match the exclusion pattern at deeper levels — e.g. when a tree has both `Foo/src/` (canonical) AND `Foo/library/Foo/Bar.php` (also canonical per checksum manifest), the find sweeps the second. In s20, the SimplePie cleanup deleted `SimplePie/library/SimplePie/*` files that WP 6.9.1 expects to exist; site stayed up because SimplePie isn't on the shop hot path, but it required restore from backup. When preserving canonical files that don't live under `/src/`, enumerate orphans first (`grep "^Warning: File should not exist"`) and delete the explicit list — don't trust pattern exclusion.
+**Source:** s20
+
+### G-39 · Staging gate discipline
+Confirmation gates exist for prod destructive writes. On staging, when a backup has already been taken at session start, gating every step turns a 15-minute install into a 3-hour flow. The s20 Wordfence install was budgeted at ~10 minutes and ran ~3 hours because every step (move stale file, edit `.user.ini`, install plugin, network-activate) was gated separately. Rule: **batch by risk profile** — one gate at the start of a risk class (e.g. "we are about to write to webroot"), one verify at the end. Treat staging like staging, not like prod-with-extra-steps.
+**Source:** s20
 
 ---
 
